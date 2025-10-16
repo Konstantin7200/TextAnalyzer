@@ -15,10 +15,11 @@ namespace Program
 
         public static void exportToXML(Text text,string path)
         {
-            XmlSerializer xmlSerializer = new XmlSerializer(typeof(Word));
+            File.Delete(path);
+            XmlSerializer xmlSerializer = new XmlSerializer(typeof(Text));
             using (FileStream fs = new FileStream(path, FileMode.OpenOrCreate))
             {
-                xmlSerializer.Serialize(fs, text.getInnerTokens()[0].getInnerTokens()[0]);
+                xmlSerializer.Serialize(fs, text);
             }
         }
     }
