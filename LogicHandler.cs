@@ -49,7 +49,7 @@ namespace Program
             {
                 foreach(SimpleToken token in sentence.getInnerTokens())
                 {
-                    if(token.tokenName=="Word")
+                    if(token.GetType()==typeof(Word))
                     {
                         if(token.innerText.Length==length)
                         {
@@ -74,7 +74,7 @@ namespace Program
                 List<SimpleToken> newSentence = new List<SimpleToken>();
                 foreach(SimpleToken token in sentence.getInnerTokens())
                 {
-                    if (token.tokenName == "Punctuation" ||!stopWords.Contains(token.innerText))
+                    if (token.GetType() == typeof(Punctuation) ||!stopWords.Contains(token.innerText))
                        newSentence.Add(token);
                 }
                 newSentences.Add(new Sentence(newSentence));
@@ -94,7 +94,7 @@ namespace Program
                 List<SimpleToken> newSentenceComponents =new List<SimpleToken>();
                 foreach(SimpleToken token in sentenceComponents)
                 {
-                    if (token.tokenName == "Word")
+                    if (token.GetType() == typeof(Word))
                     {
                         string word = token.getInnerText().ToLower();
                         if (vowels.Contains(word[0]))
@@ -117,7 +117,7 @@ namespace Program
 
             foreach(SimpleToken token in sentence.getInnerTokens())
             {
-                if(token.tokenName=="Word"&& token.getInnerText() == wordToSwap)
+                if(token.GetType() == typeof(Word) && token.getInnerText() == wordToSwap)
                 { 
                     sentenceString.Add(new Word(swap));
                 }

@@ -3,13 +3,9 @@ using System.Collections.Generic;
 
 namespace Program
 {
-    public class Token
+    public class SimpleToken
     {
-        public string tokenName;
-    }
-
-    public class SimpleToken : Token
-    {
+        [XmlText]
         public string innerText;
 
         protected SimpleToken(string innerText)
@@ -31,12 +27,11 @@ namespace Program
 
         public Word(string innerText) : base(innerText)
         {
-            tokenName = "Word";
         }
 
         override public int GetHashCode()
         {
-            return HashCode.Combine(this.getInnerText().ToLower(), this.tokenName);
+            return HashCode.Combine(this.getInnerText().ToLower(),typeof(Word));
         }
 
         public override bool Equals(object obj)
@@ -44,7 +39,7 @@ namespace Program
             if (obj == null)
                 return false;
             Word object1 = (Word)obj;
-            return (this.getInnerText().ToLower() == object1.getInnerText().ToLower()) && (this.tokenName == object1.tokenName);
+            return (this.getInnerText().ToLower() == object1.getInnerText().ToLower()) && (this.GetType() == object1.GetType());
         }
     }
 
@@ -54,11 +49,10 @@ namespace Program
 
         public Punctuation(string innerText) : base(innerText)
         {
-            tokenName = "Punctuation";
         }
     }
 
-    public class Sentence : Token
+    public class Sentence
     {
         [XmlElement("word", Type = typeof(Word))]
         [XmlElement("punctuation", Type = typeof(Punctuation))]
@@ -72,7 +66,6 @@ namespace Program
         public Sentence(List<SimpleToken> innerTokens)
         {
             this.innerTokens = innerTokens;
-            tokenName = "Sentence";
         }
 
         public Sentence() { }
@@ -82,7 +75,7 @@ namespace Program
             string result = "";
             foreach (SimpleToken token in getInnerTokens())
             {
-                if (token.tokenName == "Punctuation" && result.Length != 0)
+                if (token.GetType() == typeof(Punctuation) && result.Length != 0)
                     result = result.Substring(0, result.Length - 1);
                 result += token.getInnerText() + " ";
             }
@@ -94,7 +87,7 @@ namespace Program
             int result = 0;
             foreach (SimpleToken token in innerTokens)
             {
-                if (token.tokenName == "Word")
+                if (token.GetType() == typeof(Word))
                 {
                     result++;
                 }
@@ -104,17 +97,12 @@ namespace Program
 
         public int getLength()
         {
-            int result = 0;
-            foreach (SimpleToken token in innerTokens)
-            {
-                result += token.innerText.Length;
-            }
-            return result;
+            return getInnerText().Length-1;
         }
     }
 
-    [XmlRoot("text")]
-    public class Text : Token
+   [XmlRoot("text")]
+    public class Text
     {
         [XmlElement("sentence")]
         public List<Sentence> innerTokens { get; set; }
@@ -122,7 +110,6 @@ namespace Program
         public Text(List<Sentence> innerTokens)
         {
             this.innerTokens = innerTokens;
-            tokenName = "Text";
         }
 
         public Text() { }

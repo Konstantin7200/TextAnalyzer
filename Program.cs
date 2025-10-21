@@ -7,7 +7,8 @@ namespace Program
         {
             Text text = TextParser.parseText("Text.txt");
 
-            Exporter.exportToXML(text, "text.xml");
+            LogicHandler.sortByLength(text);
+            Exporter.exportToXML(text,"text.xml");
         }
     }
 }
