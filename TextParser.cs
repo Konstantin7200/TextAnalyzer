@@ -7,7 +7,7 @@ namespace Program
             List<SimpleToken> sentence = new List<SimpleToken>();
             List<Sentence> sentences = new List<Sentence>();
             string currentWord = "";
-            string wordSplitters = ",:; ";
+            string wordSplitters = ",:; -";
             string sentenceEnders = ".!?";
 
             foreach (char symbol in textString)
@@ -16,6 +16,8 @@ namespace Program
                 {
                     if (currentWord != "")
                     {
+                        if (currentWord.Contains('\n'))
+                            currentWord = currentWord.Substring(2);
                         sentence.Add(new Word(currentWord));
                     }
                     currentWord = "";

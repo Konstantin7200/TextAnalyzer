@@ -4,36 +4,19 @@ namespace Program
     {
         static public void sortByWordsNumber(Text text)
         {
-            List<Sentence> sentences = text.getInnerTokens();
-            List<(int, Sentence)> tuple = new List<(int, Sentence)>();
-            foreach (Sentence sentence in sentences)
-            {
-                tuple.Add((sentence.getWordsNumber(), sentence));
-            }
-            sortTuple(tuple);
-            Exporter.showTuple(tuple);
+            text.sentences.Sort(new WordsCountComparer());
         }
         static public void sortByLength(Text text)
         {
-            List<Sentence> sentences = text.getInnerTokens();
-            List<(int, Sentence)> tuple = new List<(int, Sentence)>();
-            foreach (Sentence sentence in sentences)
-            {
-                tuple.Add((sentence.getLength(), sentence));
-            }
-            sortTuple(tuple);
-            Exporter.showTuple(tuple);
+            text.sentences.Sort(new LengthComparer());
         }
-        static public List<Sentence> findInterrogative(Text text)
+        static public List<Sentence> findInterrogativeSentences(Text text)
         {
-            List<Sentence> sentences = text.getInnerTokens();
             List<Sentence> result = new List<Sentence>();
 
-            foreach(Sentence sentence in sentences)
+            foreach(Sentence sentence in text.sentences)
             {
-                
-                string sentenceText = sentence.getInnerText();
-                if (sentenceText[sentenceText.Length-2]=='?')
+                if(sentence.type=="Interrogative")
                 {
                     result.Add(sentence);
                 }
@@ -47,89 +30,89 @@ namespace Program
 
             foreach(Sentence sentence in sentences)
             {
-                foreach(SimpleToken token in sentence.getInnerTokens())
+                foreach(Word word in sentence.words)
                 {
-                    if(token.GetType()==typeof(Word))
-                    {
-                        if(token.innerText.Length==length)
-                        {
-                            result.Add((Word) token);
-                        }
-                    }
+                    result.Add(word);
                 }
             }
 
             return result.ToList();
         }
 
-        static public Text removeStopWords(Text text,string path)
+        static public void removeStopWords(Text text,string path)
         {
-            List<Sentence> newSentences = new List<Sentence>();
-            List<Sentence> sentences = text.getInnerTokens();
             string stopWordsString = File.ReadAllText(path);
             string[] stopWords = stopWordsString.Split(',');
 
-            foreach(Sentence sentence in sentences)
+            foreach(Sentence sentence in text.sentences)
             {
-                List<SimpleToken> newSentence = new List<SimpleToken>();
-                foreach(SimpleToken token in sentence.getInnerTokens())
+                for(int i=0;i<sentence.words.Count;i++)
                 {
-                    if (token.GetType() == typeof(Punctuation) ||!stopWords.Contains(token.innerText))
-                       newSentence.Add(token);
-                }
-                newSentences.Add(new Sentence(newSentence));
-            }
-
-            return new Text(newSentences);
-        }
-
-        static public Text removeAllWordsStartingWithConsonant(Text text)
-        {
-            List<Sentence> newSentences = new List<Sentence>();
-            List<Sentence> sentences = text.getInnerTokens();
-            string vowels = "àå¸èîóûýþÿ";
-            foreach(Sentence sentence in sentences)
-            {
-                List<SimpleToken> sentenceComponents = sentence.getInnerTokens();
-                List<SimpleToken> newSentenceComponents =new List<SimpleToken>();
-                foreach(SimpleToken token in sentenceComponents)
-                {
-                    if (token.GetType() == typeof(Word))
+                    Word word = sentence.words[i];
+                    if (stopWords.Contains(word.innerText))
                     {
-                        string word = token.getInnerText().ToLower();
-                        if (vowels.Contains(word[0]))
-                        {
-                            newSentenceComponents.Add(token);
-                        }
+                        sentence.words.Remove(word);
+                        sentence.innerTokens.Remove(word);
                     }
-                    else newSentenceComponents.Add(token);
                 }
-                newSentences.Add(new Sentence(newSentenceComponents));
             }
-
-
-            return new Text(newSentences);
         }
-        static public Sentence swapWordToString(Text text,int sentenceNumber,string wordToSwap,string swap)
-        {
-            List<SimpleToken> sentenceString = new List<SimpleToken>();
-            Sentence sentence = text.getInnerTokens()[sentenceNumber];
 
-            foreach(SimpleToken token in sentence.getInnerTokens())
+        static public void removeAllWordsStartingWithConsonant(Text text)
+        {   
+            foreach(Sentence sentence in text.sentences)
             {
-                if(token.GetType() == typeof(Word) && token.getInnerText() == wordToSwap)
-                { 
-                    sentenceString.Add(new Word(swap));
+                for (int i = 0; i < sentence.words.Count; i++)
+                {
+                    Word word = sentence.words[i];
+                    if (word.startingFromConsonant)
+                    {
+                        sentence.words.Remove(word);
+                        sentence.innerTokens.Remove(word);
+                    }
                 }
-                else sentenceString.Add(token);
             }
-
-            return new Sentence(sentenceString);
         }
-
-        static void sortTuple(List<(int, Sentence)> tuple)
+        static public void swapWordToString(Text text,int sentenceIndex,string wordToSwap,string swap)
         {
-            tuple.Sort((x, y) => x.Item1.CompareTo(y.Item1));
+            Sentence sentence = text.sentences[sentenceIndex];
+            for(int i=0;i<sentence.words.Count;i++)
+            {
+                if (sentence.words[i].innerText == wordToSwap)
+                    sentence.words[i].innerText = swap;
+            }
         }
+
+        static public void printConcordance(Text text)
+        {
+            List<Sentence> sentences = text.sentences;
+            SortedDictionary<Word,SortedSet<int>> concordance = new SortedDictionary<Word, SortedSet<int>>(new WordsComparator());
+
+            for (int i=0;i<sentences.Count;i++)
+            {
+                foreach (Word word in sentences[i].words)
+                    if (concordance.ContainsKey(word))
+                    {
+                        concordance[word].Add(i+1);
+                    }
+                    else
+                    {
+                        SortedSet<int> initial = new SortedSet<int>();
+                        initial.Add(i+1);
+                        concordance.Add(word,initial);
+                    }
+            }
+            foreach(var item in concordance)
+            {
+                string answer =item.Key.innerText.ToLower()+"    ";
+                foreach(int sentenceNumber in item.Value)
+                {
+                    answer = answer + (" " + sentenceNumber);
+                }
+                Console.WriteLine(answer);
+
+            }
+        }
+
     }
 }
